@@ -11,6 +11,8 @@ app.use(
     origin: [
       "http://localhost:3000",
       "http://localhost:3000/",
+      "https://vanish-vote-client-kappa.vercel.app",
+      "https://vanish-vote-client-kappa.vercel.app/"
     ],
     credentials: true,
   })
