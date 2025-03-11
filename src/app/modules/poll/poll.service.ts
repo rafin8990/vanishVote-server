@@ -47,7 +47,14 @@ const voteForOption = async (
     throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid option selected')
   }
 
-  if (poll.voters.has(userId)) {
+  if (!poll.votes) {
+    poll.votes = {}
+  }
+  if (!poll.voters) {
+    poll.voters = new Map<string, string>()
+  }
+
+  if (poll.voters.get(userId)) {
     const previousVote = poll.voters.get(userId)
 
     if (previousVote === option) {
@@ -55,15 +62,18 @@ const voteForOption = async (
         httpStatus.BAD_REQUEST,
         'You have already voted for this option'
       )
-    } else if (previousVote) {
-      const previousVoteCount = poll.votes[previousVote] ?? 0
-      poll.votes[previousVote] = previousVoteCount - 1
+    }
+
+    if (previousVote && poll.votes[previousVote] > 0) {
+      poll.votes[previousVote] -= 1
     }
   }
 
-  const currentVoteCount = poll.votes[option] ?? 0
-  poll.votes[option] = currentVoteCount + 1
+  poll.votes[option] = (poll.votes[option] ?? 0) + 1
   poll.voters.set(userId, option)
+
+  poll.markModified('votes')
+  poll.markModified('voters')
 
   await poll.save()
   return poll
@@ -73,6 +83,10 @@ const addCommentToPoll = async (
   pollId: string,
   commentText: string
 ): Promise<IPoll> => {
+  if (!commentText || commentText.trim() === '') {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Comment text cannot be empty') // Check for empty string
+  }
+
   const poll = await Poll.findById(pollId)
   if (!poll) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Poll not found')
@@ -83,8 +97,22 @@ const addCommentToPoll = async (
     createdAt: new Date(),
   })
 
-  await poll.save()
-  return poll
+  try {
+    await poll.save()
+    return poll
+  } catch (error: any) {
+    if (error.name === 'ValidationError') {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        'Validation Error: ' + error.message
+      )
+    } else {
+      throw new ApiError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        'Failed to add comment: ' + error.message
+      )
+    }
+  }
 }
 
 const addReactionToPoll = async (
@@ -102,21 +130,39 @@ const addReactionToPoll = async (
     throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid reaction')
   }
 
-  if (poll.reactions.has(userId)) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      'You have already reacted to this poll'
-    )
+  if (!poll.reactions || typeof poll.reactions !== 'object') {
+    poll.reactions = {}
+  }
+  if (!poll.reactionCounts) {
+    poll.reactionCounts = { Trending: 0, Like: 0 }
   }
 
-  const reactionCounts = new Map<string, number>(
-    Object.entries(poll.reactionCounts)
-  )
-  const currentReactionCount = reactionCounts.get(reaction) ?? 0
-  reactionCounts.set(reaction, currentReactionCount + 1)
-  poll.reactionCounts = Object.fromEntries(reactionCounts)
-  await poll.save()
+  const previousReaction = poll.reactions[userId]
 
+  if (previousReaction) {
+    if (previousReaction === reaction) {
+      delete poll.reactions[userId]
+      poll.reactionCounts[reaction] = Math.max(
+        (poll.reactionCounts[reaction] ?? 1) - 1,
+        0
+      )
+    } else {
+      poll.reactionCounts[previousReaction] = Math.max(
+        (poll.reactionCounts[previousReaction] ?? 1) - 1,
+        0
+      )
+      poll.reactions[userId] = reaction
+      poll.reactionCounts[reaction] = (poll.reactionCounts[reaction] ?? 0) + 1
+    }
+  } else {
+    poll.reactions[userId] = reaction
+    poll.reactionCounts[reaction] = (poll.reactionCounts[reaction] ?? 0) + 1
+  }
+
+  poll.markModified('reactions')
+  poll.markModified('reactionCounts')
+
+  await poll.save()
   return poll
 }
 

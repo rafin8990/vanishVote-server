@@ -1,5 +1,5 @@
-import { Schema, model } from 'mongoose'
-import { IPoll, pollModel } from './poll.interface'
+import { Schema, model } from 'mongoose';
+import { IPoll, pollModel } from './poll.interface';
 
 const pollSchema = new Schema<IPoll, Record<string, unknown>>(
   {
@@ -35,21 +35,18 @@ const pollSchema = new Schema<IPoll, Record<string, unknown>>(
       },
     ],
     voters: {
-      type: Map,
-      of: String,
+      type: Object,  
       default: {},
     },
     reactions: {
-      type: Map,
-      of: String, 
+      type: Object,
       default: {},
     },
     reactionCounts: {
-      type: Map,
-      of: Number,
+      type: Object,  
       default: {
-        'Trending': 0,
-        'Like': 0,
+        Trending: 0,
+        Like: 0,
       },
     },
   },
@@ -59,6 +56,6 @@ const pollSchema = new Schema<IPoll, Record<string, unknown>>(
       virtuals: true,
     },
   }
-)
+);
 
-export const Poll = model<IPoll, pollModel>('Poll', pollSchema)
+export const Poll = model<IPoll, pollModel>('Poll', pollSchema);

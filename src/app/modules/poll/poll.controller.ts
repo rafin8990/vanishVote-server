@@ -37,10 +37,12 @@ const voteForOption = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+
 const addCommentToPoll = catchAsync(async (req: Request, res: Response) => {
-  const { pollId } = req.params; 
-  const { commentText } = req.body; 
+  const { pollId } = req.params;
+  const { text: commentText } = req.body;  // Use "text" to match frontend
   const result = await PollService.addCommentToPoll(pollId, commentText);
+
   sendResponse(res, {
     statusCode: httpStatus.OK,
     message: 'Comment added successfully',
@@ -48,6 +50,8 @@ const addCommentToPoll = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+
+
 const addReaction = catchAsync(async (req: Request, res: Response) => {
   const { pollId, userId } = req.params;  
   const {reaction} = req.body;  

@@ -9,8 +9,8 @@ export type IPoll = {
   votes: Record<string, number>;
   comments: { text: string; createdAt: Date }[];
   voters: Map<string, string>;
-  reactions: Map<string, string>;
-  reactionCounts: Record<string, number>;
+  reactions: { [key: string]: string };  
+  reactionCounts: { [key: string]: number };
 }
 
 export type pollModel = Model<IPoll, Record<string, unknown>>
