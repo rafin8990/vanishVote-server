@@ -8,8 +8,8 @@ export type IPoll = {
   options: string[];
   votes: Record<string, number>;
   comments: { text: string; createdAt: Date }[];
-  voters: Map<string, string>;
-  reactions: { [key: string]: string };  
+  voters: Record<string, string>; 
+  reactions: { [key: string]: string };
   reactionCounts: { [key: string]: number };
 }
 

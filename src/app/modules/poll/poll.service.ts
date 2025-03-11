@@ -51,11 +51,11 @@ const voteForOption = async (
     poll.votes = {}
   }
   if (!poll.voters) {
-    poll.voters = new Map<string, string>()
+    poll.voters = {}  // Change this to a plain object
   }
 
-  if (poll.voters.get(userId)) {
-    const previousVote = poll.voters.get(userId)
+  if (poll.voters[userId]) {
+    const previousVote = poll.voters[userId]
 
     if (previousVote === option) {
       throw new ApiError(
@@ -70,7 +70,7 @@ const voteForOption = async (
   }
 
   poll.votes[option] = (poll.votes[option] ?? 0) + 1
-  poll.voters.set(userId, option)
+  poll.voters[userId] = option  // Use object property assignment
 
   poll.markModified('votes')
   poll.markModified('voters')
@@ -78,6 +78,7 @@ const voteForOption = async (
   await poll.save()
   return poll
 }
+
 
 const addCommentToPoll = async (
   pollId: string,
