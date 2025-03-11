@@ -18,11 +18,39 @@ const pollSchema = new Schema<IPoll, Record<string, unknown>>(
     uuid: {
       type: String,
       required: true,
-      unique:true
+      unique: true,
+    },
+    votes: {
+      type: Object,
+      default: {},
     },
     options: {
       type: [String],
       required: true,
+    },
+    comments: [
+      {
+        text: { type: String, required: true },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
+    voters: {
+      type: Map,
+      of: String,
+      default: {},
+    },
+    reactions: {
+      type: Map,
+      of: String, 
+      default: {},
+    },
+    reactionCounts: {
+      type: Map,
+      of: Number,
+      default: {
+        'Trending': 0,
+        'Like': 0,
+      },
     },
   },
   {
