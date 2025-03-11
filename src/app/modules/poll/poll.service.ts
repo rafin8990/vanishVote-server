@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import ApiError from '../../../errors/ApiError'
 import { IPoll } from './poll.interface'
 import { Poll } from './poll.model'
+import { isValidObjectId } from 'mongoose'
 
 const createPoll = async (poll: IPoll): Promise<IPoll> => {
   poll.uuid = uuidv4()
